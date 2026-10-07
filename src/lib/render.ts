@@ -54,7 +54,7 @@ export const defaultStyle: LyricStyle = {
 	headline: '',
 	headlineSize: 64,
 	offset: 0,
-	animate: true,
+	animate: false,
 	animIn: 150,
 	animOut: 150,
 	animEasing: 'bounce',
