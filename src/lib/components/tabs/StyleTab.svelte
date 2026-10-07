@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BUILTIN_FONTS } from '$lib/fonts';
+	import { BUILTIN_FONTS, WEIGHT_NAMES } from '$lib/fonts';
 	import { getProject, pickFile } from '$lib/project.svelte';
 	import { defaultStyle, type Easing, type LyricMode } from '$lib/render';
 
@@ -8,6 +8,7 @@
 	const project = getProject();
 	const style = $derived(project.style);
 	const selectedCustom = $derived(project.customFonts.find((f) => f.css === style.font));
+	const selectedFont = $derived(project.fonts.find((f) => f.css === style.font));
 
 	const MODES: [LyricMode, string][] = [
 		['karaoke', 'karaoke line'],
@@ -85,6 +86,13 @@
 			onchange={(e) => pickFile(e, (f) => project.importFont(f))}
 		/></label
 	>
+	{#if selectedFont && selectedFont.weights.length > 1}
+		<select aria-label="font weight" bind:value={style.weight}>
+			{#each selectedFont.weights as w (w)}
+				<option value={w}>{WEIGHT_NAMES[w] ?? w}</option>
+			{/each}
+		</select>
+	{/if}
 	{#if selectedCustom}
 		<button onclick={() => project.removeFont(selectedCustom)}>remove</button>
 	{/if}
