@@ -11,13 +11,13 @@
 
 	const problem = $derived(
 		!mimeType
-			? 'Your browser cannot record video. Use a recent Chrome, Edge or Safari.'
+			? 'your browser cannot record video. use a recent chrome, edge or safari.'
 			: !project.songFile
-				? 'Upload a song first.'
+				? 'upload a song first.'
 				: project.decoding || !project.audioBuffer
-					? 'Decoding song…'
+					? 'decoding song…'
 					: project.clipLength < 1
-						? 'The section must be at least 1 second long.'
+						? 'the section must be at least 1 second long.'
 						: ''
 	);
 </script>

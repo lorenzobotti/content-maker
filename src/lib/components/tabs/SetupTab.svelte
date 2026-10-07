@@ -37,7 +37,7 @@
 			onchange={(e) => pickFile(e, (f) => project.setMedia(f))}
 		/>
 	</label>
-	<br /><small>{project.mediaFile?.name ?? 'None (a gradient will be used)'}</small>
+	<br /><small>{project.mediaFile?.name ?? 'none (a gradient will be used)'}</small>
 </p>
 
 <p>
@@ -46,7 +46,7 @@
 		<input type="file" accept="audio/*" onchange={(e) => pickFile(e, (f) => project.setSong(f))} />
 	</label>
 	<br /><small>
-		{project.songFile?.name ?? 'No song yet'}
+		{project.songFile?.name ?? 'no song yet'}
 		{#if project.decoding}(decoding…){:else if project.audioBuffer}({fmtTime(
 				project.audioBuffer.duration
 			)}){/if}

@@ -21,6 +21,8 @@
 	/** Zoom, in pixels per second. */
 	let pps = $state(160);
 	let follow = $state(true);
+	/** Touch-friendly stand-in for shift-drag: dragging a word also moves every word after it. */
+	let moveRest = $state(false);
 	let scroller: HTMLDivElement | undefined = $state();
 	let canvas: HTMLCanvasElement | undefined = $state();
 	let viewWidth = $state(0);
@@ -215,12 +217,13 @@
 		const i = timed.findIndex((t) => t.li === li && t.wi === wi);
 		const me = timed[i];
 		let { min, max } = limits(timed, i);
-		const moving = e.shiftKey ? timed.slice(i) : [me];
-		const ends = e.shiftKey
+		const rest = e.shiftKey || moveRest;
+		const moving = rest ? timed.slice(i) : [me];
+		const ends = rest
 			? project.lines.filter((l, idx) => idx >= li && l.end != null && l.end > me.start)
 			: [];
 		// Shift-drag moves everything after too, so only the previous word limits it.
-		if (e.shiftKey) max = duration * 1000 - timed[timed.length - 1].start;
+		if (rest) max = duration * 1000 - timed[timed.length - 1].start;
 		drag = {
 			x0: e.clientX,
 			moved: false,
@@ -271,7 +274,8 @@
 		drag = null;
 	}
 
-	function seekBackground(e: PointerEvent) {
+	// A click rather than pointerdown, so swiping to scroll the timeline on touch doesn't seek.
+	function seekBackground(e: MouseEvent) {
 		if (e.target !== e.currentTarget) return;
 		const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
 		selected = null;
@@ -343,6 +347,8 @@
 		/></label
 	>
 	<label><input type="checkbox" bind:checked={follow} /> follow playhead</label>
+	<label><input type="checkbox" bind:checked={moveRest} /> move following words too</label>
+	<button onclick={() => project.togglePlay()}>{project.paused ? 'play' : 'pause'}</button>
 	<button onclick={undo} disabled={!history.length}>undo</button>
 </p>
 
@@ -359,7 +365,7 @@
 			role="presentation"
 			style:width="{contentWidth}px"
 			style:height="{HEIGHT}px"
-			onpointerdown={seekBackground}
+			onclick={seekBackground}
 		>
 			{#each blocks as b (`${b.li}:${b.wi}`)}
 				<button
@@ -410,9 +416,12 @@
 {/if}
 
 <p class="hint">
-	drag a word to move it; <kbd>shift</kbd>-drag moves it and everything after it. drag the red
-	markers to change when a line disappears. click a word to jump to it, <kbd>space</kbd> plays. with
-	a word selected, <kbd>←</kbd>/<kbd>→</kbd> nudge 10ms (<kbd>shift</kbd> 100ms) and
+	drag a word to move it; <kbd>shift</kbd>-drag (or tick “move following words too”) moves it and
+	everything after it. drag the red markers to change when a line disappears. click a word to jump
+	to it, <kbd>space</kbd> plays. with a word selected, <kbd>←</kbd>/<kbd>→</kbd> nudge 10ms (<kbd
+		>shift</kbd
+	>
+	100ms) and
 	<kbd>delete</kbd>
 	clears it. <kbd>⌘/ctrl</kbd>+<kbd>z</kbd> undoes.
 </p>

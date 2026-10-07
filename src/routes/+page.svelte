@@ -190,9 +190,9 @@
 			<button
 				onclick={() => project.togglePlay()}
 				disabled={!project.songFile || project.exporting}
-				title={project.paused ? 'Play' : 'Pause'}
+				title={project.paused ? 'play' : 'pause'}
 			>
-				{project.paused ? 'Play' : 'Pause'}
+				{project.paused ? 'play' : 'pause'}
 			</button>
 			<input
 				type="range"
@@ -217,13 +217,26 @@
 		align-items: flex-start;
 	}
 	.editor {
-		flex: 1;
-		min-width: 320px;
+		flex: 1 1 320px;
+		min-width: 0;
 	}
 	.preview {
 		width: 300px;
 		position: sticky;
 		top: 10px;
+	}
+	/* Phones: one column, preview below the editor (the sync pad needs the screen). */
+	@media (max-width: 700px) {
+		.layout {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.preview {
+			position: static;
+			width: 100%;
+			max-width: 300px;
+			margin: 0 auto;
+		}
 	}
 	.frame {
 		position: relative;

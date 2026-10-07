@@ -12,6 +12,20 @@ body {
 	margin: 10px;
 	background: #fff;
 	color: var(--text);
+	overflow-wrap: anywhere;
+}
+
+/* Keep things inside narrow screens. */
+input,
+select,
+textarea,
+video {
+	max-width: 100%;
+}
+
+/* No double-tap-to-zoom delay on buttons. */
+button {
+	touch-action: manipulation;
 }
 
 .hint,

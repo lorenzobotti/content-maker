@@ -94,6 +94,12 @@ export function parseLrc(text: string): Line[] {
 		}
 		if (words.length) lines.push({ words, end: pending });
 	}
+	// Line-level LRC: the final line has nothing after it to bound its untimed words, so give it
+	// an end that leaves room for them at a natural pace.
+	const tail = lines[lines.length - 1];
+	const tailStart = tail?.words[0].start;
+	if (tail && tail.end == null && tailStart != null && tail.words.some((w) => w.start == null))
+		tail.end = tailStart + Math.round(MAX_SPREAD * 1000 * tail.words.length);
 	return lines;
 }
 
@@ -123,8 +129,10 @@ export function buildTimeline(lines: Line[]): TimedLine[] {
 	let last = -1;
 	flat.forEach((w, i) => w.start != null && (last = i));
 	if (last < 0) return [];
-	// Include the rest of the last synced line (e.g. LRC with only line-level timestamps).
-	while (last + 1 < flat.length && flat[last + 1].li === flat[last].li) last++;
+	// Words after the last synced one aren't shown (so the preview never runs ahead of live
+	// tapping), unless their line has an explicit end to spread them over.
+	if (lineEnds[flat[last].li] != null)
+		while (last + 1 < flat.length && flat[last + 1].li === flat[last].li) last++;
 	const words = flat.slice(0, last + 1);
 
 	// Fill missing timings by spreading them between known ones, within the line when it has an end.

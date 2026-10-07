@@ -78,8 +78,10 @@
 
 	function handleAt(e: PointerEvent): 'start' | 'end' | null {
 		const x = e.clientX - wrap!.getBoundingClientRect().left;
-		if (Math.abs(x - toX(project.clipStart)) <= HANDLE_PX) return 'start';
-		if (Math.abs(x - toX(project.clipEnd)) <= HANDLE_PX) return 'end';
+		// Fingers are less precise than a mouse.
+		const reach = e.pointerType === 'mouse' ? HANDLE_PX : HANDLE_PX * 2.5;
+		if (Math.abs(x - toX(project.clipStart)) <= reach) return 'start';
+		if (Math.abs(x - toX(project.clipEnd)) <= reach) return 'end';
 		return null;
 	}
 
@@ -126,7 +128,7 @@
 </script>
 
 {#if !project.audioBuffer}
-	<p class="hint">{project.decoding ? 'Reading the song…' : 'Upload a song to pick a section.'}</p>
+	<p class="hint">{project.decoding ? 'reading the song…' : 'upload a song to pick a section.'}</p>
 {:else}
 	<div
 		class="wave"
@@ -159,7 +161,7 @@
 			{disabled}
 			onclick={() => project.togglePlay(true)}
 			title="play the whole song from the playhead, ignoring the section"
-			>{project.paused ? '▶ Listen from playhead' : '❚❚ Pause'}</button
+			>{project.paused ? '▶ listen from playhead' : '❚❚ pause'}</button
 		>
 		|
 		{#each [15, 30, 60] as n (n)}

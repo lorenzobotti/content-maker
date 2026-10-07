@@ -27,7 +27,7 @@
 	</p>
 	<p class="hint">
 		playback stops at the end of the section and jumps back to its start. if your lyrics cover the
-		whole song, click the first word sung in this section to start syncing there.
+		whole song, tap the first word sung in this section to start syncing there.
 	</p>
 	<p>
 		<button class:active={mode === 'tap'} onclick={() => (mode = 'tap')}>tap to sync</button>
@@ -40,6 +40,7 @@
 			bind:lines={project.lines}
 			audio={project.audioEl}
 			currentTime={project.currentTime}
+			paused={project.paused}
 			play={() => project.play()}
 			seek={(time) => project.seekInSection(time)}
 		/>

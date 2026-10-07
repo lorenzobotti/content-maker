@@ -39,7 +39,7 @@ export interface LyricStyle {
 }
 
 export const defaultStyle: LyricStyle = {
-	mode: 'karaoke',
+	mode: 'word',
 	font: BUILTIN_FONTS[0].css,
 	weight: BUILTIN_FONTS[0].weight,
 	size: 96,
@@ -48,7 +48,7 @@ export const defaultStyle: LyricStyle = {
 	stroke: true,
 	strokeColor: '#000000',
 	shadow: true,
-	uppercase: true,
+	uppercase: false,
 	position: 0.55,
 	dim: 0.25,
 	headline: '',
@@ -239,7 +239,7 @@ function drawBigWord(
 	ctx.save();
 	ctx.globalAlpha *= alpha;
 	scaleAround(ctx, WIDTH / 2, y, scale);
-	drawText(ctx, text, x, y, style.highlight, style, size);
+	drawText(ctx, text, x, y, style.color, style, size);
 	ctx.restore();
 }
 

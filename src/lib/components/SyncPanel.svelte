@@ -6,12 +6,14 @@
 		lines = $bindable(),
 		audio,
 		currentTime,
+		paused,
 		play,
 		seek
 	}: {
 		lines: Line[];
 		audio: HTMLAudioElement | undefined;
 		currentTime: number;
+		paused: boolean;
 		/** Start playback (kept inside the chosen song section). */
 		play: () => void;
 		/** Seek, clamped to the chosen song section. */
@@ -101,7 +103,7 @@
 	}
 
 	function clearAll() {
-		if (!confirm('Clear every word timing?')) return;
+		if (!confirm('clear every word timing?')) return;
 		for (const l of lines) {
 			l.end = null;
 			for (const w of l.words) w.start = null;
@@ -113,6 +115,24 @@
 	function setRate(r: number) {
 		rate = r;
 		if (audio) audio.playbackRate = r;
+	}
+
+	function togglePlay() {
+		if (audio?.paused) play();
+		else audio?.pause();
+	}
+
+	// The tap button records on pointerdown (no click delay) while playing. Starting playback
+	// waits for the click instead: mobile browsers only allow play() from a completed tap.
+	function onTapDown(e: PointerEvent) {
+		if (e.button !== 0 || !audio || audio.paused) return;
+		e.preventDefault();
+		tap();
+	}
+
+	function onTapClick(e: MouseEvent) {
+		if (audio?.paused) play();
+		(e.currentTarget as HTMLElement).blur();
 	}
 
 	function onkeydown(e: KeyboardEvent) {
@@ -136,8 +156,7 @@
 				break;
 			case 'KeyK':
 				e.preventDefault();
-				if (audio?.paused) play();
-				else audio?.pause();
+				togglePlay();
 				break;
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -151,10 +170,10 @@
 <svelte:window {onkeydown} />
 
 <p>
-	play the song and tap <kbd>space</kbd> (or <kbd>j</kbd>/<kbd>f</kbd>) the moment each highlighted
-	word is sung.
+	play the song and hit the big <b>tap</b> button (or <kbd>space</kbd>, <kbd>j</kbd>, <kbd>f</kbd>)
+	the moment each highlighted word is sung.
 </p>
-<ul>
+<ul class="keys">
 	<li><kbd>space</kbd> while paused → start playback</li>
 	<li><kbd>enter</kbd> → end the current line (for instrumental gaps)</li>
 	<li><kbd>backspace</kbd> → undo last tap and rewind 2s</li>
@@ -198,6 +217,33 @@
 			</div>
 		{/each}
 	</div>
+	<div class="pad">
+		<div class="controls">
+			<button onclick={() => audio && seek(audio.currentTime - 3)}>« 3s</button>
+			<button onclick={togglePlay}>{paused ? 'play' : 'pause'}</button>
+			<button onclick={() => audio && seek(audio.currentTime + 3)}>3s »</button>
+			<button onclick={undo} disabled={cursor === 0}>undo</button>
+			<button
+				onclick={endLine}
+				disabled={cursor === 0 || paused}
+				title="hide the line now (for gaps)">end line</button
+			>
+		</div>
+		<button
+			class="tap"
+			onpointerdown={onTapDown}
+			onclick={onTapClick}
+			oncontextmenu={(e) => e.preventDefault()}
+		>
+			{#if paused}
+				start
+			{:else if cursor < total}
+				tap: <b>{flat[cursor].w.text}</b>
+			{:else}
+				all words synced
+			{/if}
+		</button>
+	</div>
 {/if}
 
 <style>
@@ -225,5 +271,35 @@
 	}
 	.end {
 		color: red;
+	}
+	/* Stays reachable at the bottom of the screen while the word list scrolls. */
+	.pad {
+		position: sticky;
+		bottom: 0;
+		z-index: 5;
+		background: #fff;
+		border-top: 1px solid #999;
+		padding: 6px 0;
+	}
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		margin-bottom: 6px;
+	}
+	.tap {
+		display: block;
+		width: 100%;
+		min-height: 90px;
+		font-size: 22px;
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
+	}
+	/* Touch screens: no keyboard, so skip the shortcut list. */
+	@media (pointer: coarse) {
+		.keys {
+			display: none;
+		}
 	}
 </style>

@@ -38,7 +38,7 @@ export interface RecordOptions {
  */
 export async function recordVideo(opts: RecordOptions): Promise<{ blob: Blob; mimeType: string }> {
 	const mimeType = pickMimeType();
-	if (!mimeType) throw new Error('This browser cannot record video (MediaRecorder unsupported).');
+	if (!mimeType) throw new Error('this browser cannot record video (mediarecorder unsupported).');
 
 	const ac = new AudioContext();
 	await ac.resume();
@@ -83,7 +83,7 @@ export async function recordVideo(opts: RecordOptions): Promise<{ blob: Blob; mi
 		};
 		recorder.onerror = (e) => {
 			cleanup();
-			reject((e as ErrorEvent).error ?? new Error('Recording failed'));
+			reject((e as ErrorEvent).error ?? new Error('recording failed'));
 		};
 		opts.signal?.addEventListener('abort', () => {
 			aborted = true;

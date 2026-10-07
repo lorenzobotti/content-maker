@@ -10,14 +10,14 @@
 	const selectedCustom = $derived(project.customFonts.find((f) => f.css === style.font));
 
 	const MODES: [LyricMode, string][] = [
-		['karaoke', 'Karaoke line'],
-		['reveal', 'Word pop-in'],
-		['word', 'One word at a time']
+		['karaoke', 'karaoke line'],
+		['reveal', 'word pop-in'],
+		['word', 'one word at a time']
 	];
 	const EASINGS: [Easing, string][] = [
-		['bounce', 'Bouncy'],
-		['smooth', 'Smooth'],
-		['linear', 'Linear']
+		['bounce', 'bouncy'],
+		['smooth', 'smooth'],
+		['linear', 'linear']
 	];
 </script>
 

@@ -8,13 +8,13 @@ export interface FontOption {
 }
 
 export const BUILTIN_FONTS: FontOption[] = [
-	{ label: 'Anton', css: 'Anton, Impact, sans-serif', weight: 400 },
-	{ label: 'Bebas Neue', css: '"Bebas Neue", Impact, sans-serif', weight: 400 },
-	{ label: 'Montserrat', css: 'Montserrat, "Helvetica Neue", Arial, sans-serif', weight: 800 },
-	{ label: 'Permanent Marker', css: '"Permanent Marker", cursive', weight: 400 },
-	{ label: 'Impact', css: 'Impact, "Arial Black", sans-serif', weight: 400 },
-	{ label: 'Georgia', css: 'Georgia, "Times New Roman", serif', weight: 700 },
-	{ label: 'Courier', css: '"Courier New", monospace', weight: 700 }
+	{ label: 'anton', css: 'Anton, Impact, sans-serif', weight: 400 },
+	{ label: 'bebas neue', css: '"Bebas Neue", Impact, sans-serif', weight: 400 },
+	{ label: 'montserrat', css: 'Montserrat, "Helvetica Neue", Arial, sans-serif', weight: 800 },
+	{ label: 'permanent marker', css: '"Permanent Marker", cursive', weight: 400 },
+	{ label: 'impact', css: 'Impact, "Arial Black", sans-serif', weight: 400 },
+	{ label: 'georgia', css: 'Georgia, "Times New Roman", serif', weight: 700 },
+	{ label: 'courier', css: '"Courier New", monospace', weight: 700 }
 ];
 
 export const FONT_FILE = /\.(ttf|otf|woff2?)$/i;
@@ -27,7 +27,7 @@ export async function registerFont(file: File): Promise<FontOption> {
 		file.name
 			.replace(FONT_FILE, '')
 			.replace(/[^\w\s-]/g, ' ')
-			.trim() || 'Custom font';
+			.trim() || 'custom font';
 	// Prefixed so it can't collide with a font installed on the system.
 	const family = `User ${label}`;
 	const face = new FontFace(family, await file.arrayBuffer());
