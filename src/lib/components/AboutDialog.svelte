@@ -9,7 +9,10 @@
 <!-- Shown in Italian first, then English. Clicking the backdrop (the dialog element itself) closes it. -->
 <dialog bind:this={dialog} onclick={(e) => e.target === dialog && dialog.close()}>
 	<div class="body">
-		<p>made by <a href="https://giovanni.botti.cc/">lgb</a>!</p>
+		<p>made by <a href="https://giovanni.botti.cc/">lgb</a>!
+		<br>
+		v0.1.6.1
+		</p>
 		<section lang="it">
 			<h2>informazioni</h2>
 			<p>
