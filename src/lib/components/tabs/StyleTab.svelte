@@ -27,6 +27,13 @@
 	{#each MODES as [id, label] (id)}
 		<button class:active={style.mode === id} onclick={() => (style.mode = id)}>{label}</button>
 	{/each}
+	{#if style.mode === 'reveal'}
+		<br />
+		<label
+			><input type="checkbox" bind:checked={style.revealFill} /> fill the screen with the words shown
+			so far</label
+		>
+	{/if}
 </p>
 
 <p>

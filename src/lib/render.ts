@@ -36,6 +36,8 @@ export interface LyricStyle {
 	animEasing: Easing;
 	/** How much words scale while easing, 0 (fade only) to 1 (grow from nothing). */
 	animPop: number;
+	/** Reveal mode: lay out only the words shown so far, sized up to fill the screen. */
+	revealFill: boolean;
 }
 
 export const defaultStyle: LyricStyle = {
@@ -58,7 +60,8 @@ export const defaultStyle: LyricStyle = {
 	animIn: 150,
 	animOut: 150,
 	animEasing: 'bounce',
-	animPop: 0.5
+	animPop: 0.5,
+	revealFill: false
 };
 
 export type Media = HTMLVideoElement | HTMLImageElement | null;
@@ -134,9 +137,14 @@ function drawBackground(ctx: CanvasRenderingContext2D, media: Media) {
 }
 
 function drawLine(ctx: CanvasRenderingContext2D, line: TimedLine, t: number, style: LyricStyle) {
-	const size = style.size;
+	const fill = style.mode === 'reveal' && style.revealFill;
+	// In fill mode only the words revealed so far take part in the layout.
+	const words = fill ? line.words.filter((w) => t >= w.start) : line.words;
+	if (!words.length) return;
+	const texts = words.map((w) => (style.uppercase ? w.text.toUpperCase() : w.text));
+	const size = fill ? shrinkingSize(ctx, texts, style) : style.size;
+	style = size === style.size ? style : { ...style, size };
 	ctx.font = `${style.weight} ${size}px ${style.font}`;
-	const texts = line.words.map((w) => (style.uppercase ? w.text.toUpperCase() : w.text));
 	const rows = wrap(ctx, texts, WIDTH * 0.86);
 	const lh = size * 1.2;
 	const top = blockTop(rows.length * lh, style.position) + lh / 2;
@@ -146,13 +154,42 @@ function drawLine(ctx: CanvasRenderingContext2D, line: TimedLine, t: number, sty
 		let x = (WIDTH - row.width) / 2;
 		const y = top + r * lh;
 		for (const i of row.items) {
-			const word = line.words[i];
+			const word = words[i];
 			const text = texts[i];
 			const w = ctx.measureText(text).width;
 			drawLyricWord(ctx, word, text, x, y, w, t, style);
 			x += w + space;
 		}
 	});
+}
+
+/**
+ * Font size for the revealed words. Each added word shrinks the text by at least 8%,
+ * even when wrapping (or the size cap) would let it stay the same or grow.
+ */
+function shrinkingSize(ctx: CanvasRenderingContext2D, texts: string[], style: LyricStyle) {
+	let size = Infinity;
+	for (let i = 1; i <= texts.length; i++) {
+		size = Math.min(fitSize(ctx, texts.slice(0, i), style), size * 0.92);
+	}
+	return size;
+}
+
+/** Largest font size (up to 3× the chosen size) at which the words fill the lyric area. */
+function fitSize(ctx: CanvasRenderingContext2D, texts: string[], style: LyricStyle) {
+	const maxH = HEIGHT * 0.72;
+	let lo = style.size * 0.4;
+	let hi = style.size * 3;
+	for (let i = 0; i < 12; i++) {
+		const mid = (lo + hi) / 2;
+		ctx.font = `${style.weight} ${mid}px ${style.font}`;
+		const rows = wrap(ctx, texts, WIDTH * 0.86);
+		const fits =
+			rows.length * mid * 1.2 <= maxH && rows.every((r) => r.width <= WIDTH * 0.86);
+		if (fits) lo = mid;
+		else hi = mid;
+	}
+	return lo;
 }
 
 function drawLyricWord(
