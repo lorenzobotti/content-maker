@@ -1,42 +1,22 @@
-# sv
+# Lyric Video Maker
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+A local, in-browser tool for making TikTok-ready (1080×1920) lyric videos. Nothing is uploaded: files stay in the browser (IndexedDB) and the video is rendered on your machine.
 
 ```sh
-# create a new project
-npx sv create my-app
+npm install
+npm run dev        # http://localhost:5173
+npm run build && npm run preview   # static build in ./build
 ```
 
-To recreate this project with the same configuration:
+## Workflow
 
-```sh
-# recreate this project
-npx sv@0.17.1 create --template minimal --types ts --add prettier eslint --install npm .
-```
+1. **Setup** – add a background video (or image), the song, and the lyrics (paste them, or load a `.txt` / `.lrc`).
+2. **Sync** – play the song and tap <kbd>Space</kbd> on each word. <kbd>Enter</kbd> ends a line early (for instrumental breaks), <kbd>Backspace</kbd> undoes, and clicking a word re-syncs from there. Slow playback (0.5×/0.75×) makes tapping easier. You can download the result as enhanced `.lrc`.
+3. **Style** – pick an animation (karaoke wipe, word pop-in, one word at a time), font, colours, position, and an optional headline.
+4. **Export** – choose the clip range and record. Output is MP4 (H.264/AAC) on Chrome, Edge and Safari, and WebM on Firefox.
 
-## Developing
+## How it works
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- `src/lib/lyrics.ts` handles lyric parsing, LRC import/export, and turning taps into a timeline.
+- `src/lib/render.ts` is a canvas renderer shared by the live preview and the export.
+- `src/lib/exporter.ts` records the canvas with `canvas.captureStream()` and the song with Web Audio, using `MediaRecorder`. Export runs in real time, so keep the tab visible.

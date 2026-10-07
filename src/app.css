@@ -1,0 +1,40 @@
+/* Deliberately plain: browser default fonts and controls. The variables are also read by the
+   waveform/timeline canvases. */
+:root {
+	--text: #000;
+	--muted: #666;
+	--accent: #ff9900;
+	--danger: #d00000;
+	--panel-2: #f2f2f2;
+}
+
+body {
+	margin: 10px;
+	background: #fff;
+	color: var(--text);
+}
+
+.hint,
+small {
+	color: var(--muted);
+}
+.warn {
+	color: #b35c00;
+}
+.error {
+	color: var(--danger);
+}
+.link {
+	color: blue;
+	text-decoration: underline;
+	cursor: pointer;
+}
+button.active {
+	font-weight: bold;
+}
+kbd {
+	font-family: monospace;
+	border: 1px solid #999;
+	background: #eee;
+	padding: 0 3px;
+}
