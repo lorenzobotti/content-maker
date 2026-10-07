@@ -2,6 +2,8 @@
 
 make vertical lyric videos in your browser. intended for music artists promoting their music on tiktok and ig reels
 
+live at https://content.botti.cc
+
 ```sh
 npm install
 npm run dev

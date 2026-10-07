@@ -8,13 +8,11 @@ export interface FontOption {
 }
 
 export const BUILTIN_FONTS: FontOption[] = [
-	{ label: 'anton', css: 'Anton, Impact, sans-serif', weight: 400 },
-	{ label: 'bebas neue', css: '"Bebas Neue", Impact, sans-serif', weight: 400 },
-	{ label: 'montserrat', css: 'Montserrat, "Helvetica Neue", Arial, sans-serif', weight: 800 },
-	{ label: 'permanent marker', css: '"Permanent Marker", cursive', weight: 400 },
-	{ label: 'impact', css: 'Impact, "Arial Black", sans-serif', weight: 400 },
-	{ label: 'georgia', css: 'Georgia, "Times New Roman", serif', weight: 700 },
-	{ label: 'courier', css: '"Courier New", monospace', weight: 700 }
+	{ label: 'tiktok sans', css: '"TikTok Sans", "Helvetica Neue", Arial, sans-serif', weight: 800 },
+	{ label: 'open sans', css: '"Open Sans", "Helvetica Neue", Arial, sans-serif', weight: 800 },
+	{ label: 'bitcount ink', css: '"Bitcount Ink", monospace', weight: 400 },
+	{ label: 'playwrite canada guides', css: '"Playwrite CA Guides", cursive', weight: 400 },
+	{ label: 'oswald', css: 'Oswald, Impact, sans-serif', weight: 700 }
 ];
 
 export const FONT_FILE = /\.(ttf|otf|woff2?)$/i;

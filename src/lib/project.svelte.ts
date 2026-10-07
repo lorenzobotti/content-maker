@@ -111,6 +111,10 @@ export class Project {
 			this.lyricsText = saved.lyricsText ?? '';
 			this.lines = saved.lines ?? [];
 			this.style = { ...defaultStyle, ...saved.style };
+			// Built-in fonts that have since been removed fall back to the default.
+			const font = this.style.font;
+			if (!font.startsWith('"User ') && !BUILTIN_FONTS.some((f) => f.css === font))
+				this.selectFont(BUILTIN_FONTS[0]);
 			this.clipStart = saved.clipStart ?? 0;
 			this.clipEnd = saved.clipEnd ?? 0;
 			this.videoOffset = saved.videoOffset ?? 0;

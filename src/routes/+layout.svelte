@@ -1,18 +1,13 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
 	// Bundled locally so the app (and canvas text) works offline.
-	import '@fontsource/anton';
-	import '@fontsource/bebas-neue';
-	import '@fontsource/montserrat/800.css';
-	import '@fontsource/permanent-marker';
+	import '@fontsource/tiktok-sans/800.css';
+	import '@fontsource/open-sans/800.css';
+	import '@fontsource/bitcount-ink/400.css';
+	import '@fontsource/playwrite-ca-guides/400.css';
+	import '@fontsource/oswald/700.css';
 	import '../app.css';
 
 	let { children } = $props();
 </script>
-
-<svelte:head>
-	<link rel="icon" href={favicon} />
-	<title>tool to make tiktoks</title>
-</svelte:head>
 
 {@render children()}
