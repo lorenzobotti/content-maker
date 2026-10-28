@@ -10,6 +10,15 @@ import {
 	type Line
 } from './lyrics';
 import { defaultStyle, type LyricStyle } from './render';
+import {
+	cleanSubtitleOptions,
+	defaultSubtitleOptions,
+	isSrt,
+	parseSrt,
+	toLrcWithOptions,
+	toSrt,
+	type SubtitleOptions
+} from './subtitles';
 import { decodeAudio } from './exporter';
 import {
 	BUILTIN_FONTS,
@@ -34,6 +43,7 @@ interface Saved {
 	clipStart: number;
 	clipEnd: number;
 	videoOffset: number;
+	subtitles?: SubtitleOptions;
 }
 
 function migrate(s: Partial<Saved> | null): Partial<Saved> | null {
@@ -71,6 +81,12 @@ export class Project {
 	clipStart = $state(0);
 	clipEnd = $state(0);
 	videoOffset = $state(0);
+	/** Settings for the .srt / .lrc downloads and the file converter. */
+	subtitles = $state<SubtitleOptions>({ ...defaultSubtitleOptions });
+	convertError = $state('');
+	/** Optional custom names (without extension) for the exported video and subtitle files. */
+	videoName = $state('');
+	subtitleName = $state('');
 
 	// --- fonts ---
 	customFonts = $state.raw<FontOption[]>([]);
@@ -120,6 +136,7 @@ export class Project {
 			this.clipStart = saved.clipStart ?? 0;
 			this.clipEnd = saved.clipEnd ?? 0;
 			this.videoOffset = saved.videoOffset ?? 0;
+			if (saved.subtitles) this.subtitles = cleanSubtitleOptions(saved.subtitles);
 		}
 
 		loadFile('media').then((f) => f && !this.mediaFile && (this.mediaFile = f));
@@ -167,7 +184,8 @@ export class Project {
 				style: $state.snapshot(this.style),
 				clipStart: this.clipStart,
 				clipEnd: this.clipEnd,
-				videoOffset: this.videoOffset
+				videoOffset: this.videoOffset,
+				subtitles: $state.snapshot(this.subtitles)
 			};
 			const id = setTimeout(() => saveState(snap), 400);
 			return () => clearTimeout(id);
@@ -199,8 +217,8 @@ export class Project {
 
 	async setLyricsFile(f: File) {
 		const text = await f.text();
-		if (isLrc(text)) {
-			this.lines = parseLrc(text);
+		if (isSrt(text) || isLrc(text)) {
+			this.lines = isSrt(text) ? parseSrt(text) : parseLrc(text);
 			this.lyricsText = linesToText(this.lines);
 		} else {
 			this.setLyricsText(text);
@@ -212,7 +230,7 @@ export class Project {
 		if (FONT_FILE.test(f.name)) this.importFont(f);
 		else if (f.type.startsWith('video/') || f.type.startsWith('image/')) this.setMedia(f);
 		else if (f.type.startsWith('audio/')) this.setSong(f);
-		else if (/\.(txt|lrc)$/i.test(f.name) || f.type.startsWith('text/')) this.setLyricsFile(f);
+		else if (/\.(txt|lrc|srt)$/i.test(f.name) || f.type.startsWith('text/')) this.setLyricsFile(f);
 	}
 
 	async addFont(file: File, select = true) {
@@ -314,13 +332,36 @@ export class Project {
 		return (this.songFile?.name ?? 'lyric-video').replace(/\.[^.]+$/, '');
 	}
 
+	/** `custom` (minus any extension the user typed and characters files can't have), or `fallback`. */
+	fileName(custom: string, fallback: string, ext: string) {
+		const name = custom
+			.trim()
+			.replace(new RegExp(`\\.${ext}$`, 'i'), '')
+			.replace(/[\\/:*?"<>|]/g, '')
+			.trim();
+		return `${name || fallback}.${ext}`;
+	}
+
 	downloadLrc() {
-		const blob = new Blob([toLrc(this.lines)], { type: 'text/plain' });
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(blob);
-		a.download = `${this.baseName()}.lrc`;
-		a.click();
-		setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+		download(toLrc(this.lines), `${this.baseName()}.lrc`);
+	}
+
+	/** Download the synced lyrics as .srt or .lrc using the subtitle settings. */
+	downloadSubtitles(format: 'srt' | 'lrc') {
+		const opts = cleanSubtitleOptions(this.subtitles);
+		const text = format === 'srt' ? toSrt(this.lines, opts) : toLrcWithOptions(this.lines, opts);
+		download(text, this.fileName(this.subtitleName, this.baseName(), format));
+	}
+
+	/** Convert an .lrc file to .srt or an .srt file to .lrc with the subtitle settings. */
+	async convertSubtitleFile(f: File) {
+		this.convertError = '';
+		const text = await f.text();
+		const opts = cleanSubtitleOptions(this.subtitles);
+		const name = f.name.replace(/\.[^.]+$/, '');
+		if (isSrt(text)) download(toLrcWithOptions(parseSrt(text), opts), `${name}.lrc`);
+		else if (isLrc(text)) download(toSrt(parseLrc(text), opts), `${name}.srt`);
+		else this.convertError = `${f.name} is not an .lrc or .srt file.`;
 	}
 }
 
@@ -332,6 +373,15 @@ export function setProject(project: Project) {
 
 export function getProject(): Project {
 	return getContext<Project>(KEY);
+}
+
+function download(text: string, name: string) {
+	const blob = new Blob([text], { type: 'text/plain' });
+	const a = document.createElement('a');
+	a.href = URL.createObjectURL(blob);
+	a.download = name;
+	a.click();
+	setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 /** File-input change handler: hand the picked file to `fn`, then reset so the same file can be re-picked. */

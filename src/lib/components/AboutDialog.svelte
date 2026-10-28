@@ -11,7 +11,7 @@
 	<div class="body">
 		<p>made by <a href="https://giovanni.botti.cc/">lgb</a>!
 		<br>
-		v0.1.7.1
+		v0.1.8
 		</p>
 		<section lang="it">
 			<h2>informazioni</h2>

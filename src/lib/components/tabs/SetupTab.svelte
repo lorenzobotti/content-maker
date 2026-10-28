@@ -59,9 +59,9 @@
 <p>
 	<b>lyrics</b>
 	(<label class="link"
-		>load .txt / .lrc<input
+		>load .txt / .lrc / .srt<input
 			type="file"
-			accept=".txt,.lrc,text/plain"
+			accept=".txt,.lrc,.srt,text/plain"
 			hidden
 			onchange={(e) => pickFile(e, (f) => project.setLyricsFile(f))}
 		/></label

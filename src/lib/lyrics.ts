@@ -202,7 +202,7 @@ export function fmtTime(t: number): string {
 	return `${m}:${s.toFixed(2).padStart(5, '0')}`;
 }
 
-function fmtLrc(ms: number): string {
+export function fmtLrc(ms: number): string {
 	const t = ms / 1000;
 	const m = Math.floor(t / 60);
 	return `${String(m).padStart(2, '0')}:${(t - m * 60).toFixed(2).padStart(5, '0')}`;

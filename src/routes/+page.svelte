@@ -113,7 +113,11 @@
 			});
 			project.result = {
 				url: URL.createObjectURL(blob),
-				name: `${project.baseName()}-tiktok.${extensionFor(mimeType)}`,
+				name: project.fileName(
+					project.videoName,
+					`${project.baseName()}-tiktok`,
+					extensionFor(mimeType)
+				),
 				size: blob.size
 			};
 		} catch (e) {
