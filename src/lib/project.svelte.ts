@@ -109,6 +109,8 @@ export class Project {
 	// --- export ---
 	fps = $state(30);
 	monitor = $state(true);
+	/** Encode MP4 with WebCodecs, for browsers whose MediaRecorder only does WebM. */
+	mp4 = $state(false);
 	exporting = $state(false);
 	progress = $state(0);
 	exportError = $state('');

@@ -7,7 +7,7 @@
 	import AboutDialog from '$lib/components/AboutDialog.svelte';
 	import { fmtTime } from '$lib/lyrics';
 	import { drawFrame, HEIGHT, WIDTH, type Media } from '$lib/render';
-	import { extensionFor, recordVideo } from '$lib/exporter';
+	import { encodeMp4, extensionFor, preloadMp4Encoder, recordVideo } from '$lib/exporter';
 	import { Project, setProject } from '$lib/project.svelte';
 
 	const project = setProject(new Project());
@@ -27,6 +27,7 @@
 	let aboutDialog: AboutDialog | undefined = $state();
 
 	onMount(() => {
+		preloadMp4Encoder();
 		const ctx = canvas!.getContext('2d')!;
 		let raf = 0;
 		const loop = () => {
@@ -120,7 +121,7 @@
 				await seeked;
 			}
 			project.abort = new AbortController();
-			const { blob, mimeType } = await recordVideo({
+			const { blob, mimeType } = await (project.mp4 ? encodeMp4 : recordVideo)({
 				canvas,
 				audio: project.audioBuffer,
 				start: project.clipStart,

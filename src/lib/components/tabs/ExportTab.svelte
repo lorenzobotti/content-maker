@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { extensionFor, pickMimeType } from '$lib/exporter';
+	import { canEncodeMp4, extensionFor, pickMimeType } from '$lib/exporter';
 	import { fmtTime } from '$lib/lyrics';
 	import SectionPicker from '$lib/components/SectionPicker.svelte';
 	import { getProject, pickFile } from '$lib/project.svelte';
@@ -8,6 +8,10 @@
 
 	const project = getProject();
 	const mimeType = pickMimeType();
+
+	let mp4Available = $state(false);
+	if (mimeType && extensionFor(mimeType) !== 'mp4')
+		canEncodeMp4().then((ok) => (mp4Available = ok));
 
 	const problem = $derived(
 		!mimeType
@@ -30,7 +34,7 @@
 
 <p>
 	video length: {fmtTime(project.clipLength)}. 15–60 seconds works best on tiktok. output is
-	1080×1920 {mimeType ? extensionFor(mimeType).toUpperCase() : ''}.
+	1080×1920 {project.mp4 ? 'MP4' : mimeType ? extensionFor(mimeType).toUpperCase() : ''}.
 </p>
 <p>
 	<label
@@ -56,6 +60,14 @@
 		><input type="checkbox" bind:checked={project.monitor} disabled={project.exporting} />
 		play audio while exporting</label
 	>
+	{#if mp4Available}
+		<br />
+		<label
+			><input type="checkbox" bind:checked={project.mp4} disabled={project.exporting} />
+			export as mp4</label
+		>
+		<small>(may drop frames on slower computers)</small>
+	{/if}
 </p>
 
 <p class="hint">
