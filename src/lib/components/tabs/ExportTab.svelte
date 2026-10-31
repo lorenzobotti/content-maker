@@ -12,14 +12,16 @@
 	const problem = $derived(
 		!mimeType
 			? 'your browser cannot record video. use a recent chrome, edge or safari.'
-			: !project.audioFile
-				? 'add a video or a song first.'
-				: project.decodeError ||
-					(project.decoding || !project.audioBuffer
-						? `decoding ${project.audioLabel}…`
-						: project.clipLength < 1
-							? 'the section must be at least 1 second long.'
-							: '')
+			: project.mediaStatus === 'failed'
+				? "this browser can't play the background. convert it or pick another file."
+				: !project.audioFile
+					? 'add a video or a song first.'
+					: project.decodeError ||
+						(project.decoding || !project.audioBuffer
+							? `decoding ${project.audioLabel}…`
+							: project.clipLength < 1
+								? 'the section must be at least 1 second long.'
+								: '')
 	);
 </script>
 

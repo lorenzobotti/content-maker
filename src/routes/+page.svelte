@@ -35,13 +35,38 @@
 				project.enforceSection();
 				const t = audio.currentTime;
 				syncVideo(t, !audio.paused, audio.playbackRate);
-				drawFrame(ctx, currentMedia(), t, project.timeline, project.style);
+				draw(ctx, t);
 			}
 			raf = requestAnimationFrame(loop);
 		};
 		raf = requestAnimationFrame(loop);
 		return () => cancelAnimationFrame(raf);
 	});
+
+	// A new background shouldn't start from the previous one's last frame.
+	$effect(() => {
+		void project.mediaUrl;
+		canvas?.getContext('2d')!.clearRect(0, 0, WIDTH, HEIGHT);
+	});
+
+	function mediaStatus(): typeof project.mediaStatus {
+		if (project.restoring) return 'loading';
+		if (!project.mediaKind) return 'ready';
+		if (project.mediaError) return 'failed';
+		const media = currentMedia();
+		if (media instanceof HTMLVideoElement && media.readyState >= 2)
+			return media.videoWidth > 0 ? 'ready' : 'failed'; // e.g. only the sound could be decoded
+		if (media instanceof HTMLImageElement && media.complete && media.naturalWidth > 0)
+			return 'ready';
+		return 'loading';
+	}
+
+	/** While the background is loading or seeking, leave the last drawn frame on the canvas. */
+	function draw(ctx: CanvasRenderingContext2D, t: number) {
+		project.mediaStatus = mediaStatus();
+		if (project.mediaStatus !== 'loading')
+			drawFrame(ctx, currentMedia(), t, project.timeline, project.style);
+	}
 
 	function currentMedia(): Media {
 		if (project.mediaKind === 'video') return videoEl ?? null;
@@ -106,7 +131,7 @@
 				onProgress: (p) => (project.progress = p),
 				render: (t) => {
 					syncVideo(t, true, 1);
-					drawFrame(ctx, currentMedia(), t, project.timeline, project.style);
+					draw(ctx, t);
 				}
 			});
 			project.result = {
@@ -133,10 +158,23 @@
 
 <!-- Hidden media elements that feed the canvas. -->
 <div hidden>
-	{#if project.mediaKind === 'video'}
-		<video bind:this={videoEl} src={project.mediaUrl} muted loop playsinline preload="auto"></video>
-	{:else if project.mediaKind === 'image'}
-		<img bind:this={imgEl} src={project.mediaUrl} alt="" />
+	{#if project.mediaUrl && project.mediaKind === 'video'}
+		<video
+			bind:this={videoEl}
+			src={project.mediaUrl}
+			onerror={() => (project.mediaError = true)}
+			muted
+			loop
+			playsinline
+			preload="auto"
+		></video>
+	{:else if project.mediaUrl && project.mediaKind === 'image'}
+		<img
+			bind:this={imgEl}
+			src={project.mediaUrl}
+			alt=""
+			onerror={() => (project.mediaError = true)}
+		/>
 	{/if}
 </div>
 <audio
@@ -182,6 +220,14 @@
 	<div class="preview">
 		<div class="frame">
 			<canvas bind:this={canvas} width={WIDTH} height={HEIGHT}></canvas>
+			{#if project.mediaStatus === 'loading'}
+				<div class="status loading" role="status">
+					<div class="spinner"></div>
+					loading…
+				</div>
+			{:else if project.mediaStatus === 'failed'}
+				<div class="status" role="alert">this browser can't play this background</div>
+			{/if}
 			{#if showGuides}
 				<div class="guide right"></div>
 				<div class="guide bottom"></div>
@@ -243,6 +289,43 @@
 	.frame {
 		position: relative;
 		border: 1px solid #000;
+		background: #000;
+	}
+	.status {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 20px;
+		text-align: center;
+		color: #fff;
+		text-shadow: 0 0 4px #000;
+		pointer-events: none;
+	}
+	/* Delayed so quick seeks on light videos don't flicker. */
+	.status.loading {
+		animation: appear 0.15s 0.25s both;
+	}
+	.spinner {
+		width: 36px;
+		height: 36px;
+		border: 4px solid rgba(255, 255, 255, 0.3);
+		border-top-color: #fff;
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+	@keyframes appear {
+		from {
+			opacity: 0;
+		}
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 	canvas {
 		display: block;

@@ -12,7 +12,7 @@
 		<p>
 			made by <a href="https://giovanni.botti.cc/">lgb</a>!
 			<br />
-			v0.1.9
+			v0.1.10
 		</p>
 		<section lang="it">
 			<h2>informazioni</h2>

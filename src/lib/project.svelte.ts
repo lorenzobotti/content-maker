@@ -74,6 +74,12 @@ export class Project {
 	decodeError = $state('');
 	mediaUrl = $state('');
 	audioUrl = $state('');
+	/** Saved files are still being read back from storage. */
+	restoring = $state(true);
+	/** Whether the background can be drawn right now; set by the page's draw loop. */
+	mediaStatus = $state<'loading' | 'ready' | 'failed'>('loading');
+	/** The browser reported it can't load the background file. */
+	mediaError = $state(false);
 
 	// --- lyrics, style, clip (persisted) ---
 	lyricsText = $state('');
@@ -152,12 +158,14 @@ export class Project {
 		Promise.all([loadFile('media'), loadFile('song')]).then(([media, song]) => {
 			if (media && !this.mediaFile) this.mediaFile = media;
 			if (song && !this.songFile) this.songFile = song;
+			this.restoring = false;
 		});
 		loadFiles('fonts').then(async (files) => {
 			for (const f of files) await this.addFont(f, false).catch((e) => console.warn(e));
 		});
 
 		$effect(() => {
+			this.mediaError = false;
 			if (!this.mediaFile) return void (this.mediaUrl = '');
 			const url = URL.createObjectURL(this.mediaFile);
 			this.mediaUrl = url;
