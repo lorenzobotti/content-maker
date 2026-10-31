@@ -12,17 +12,18 @@
 	const problem = $derived(
 		!mimeType
 			? 'your browser cannot record video. use a recent chrome, edge or safari.'
-			: !project.songFile
-				? 'upload a song first.'
-				: project.decoding || !project.audioBuffer
-					? 'decoding song…'
-					: project.clipLength < 1
-						? 'the section must be at least 1 second long.'
-						: ''
+			: !project.audioFile
+				? 'add a video or a song first.'
+				: project.decodeError ||
+					(project.decoding || !project.audioBuffer
+						? `decoding ${project.audioLabel}…`
+						: project.clipLength < 1
+							? 'the section must be at least 1 second long.'
+							: '')
 	);
 </script>
 
-<p><b>song section</b></p>
+<p><b>{project.audioLabel} section</b></p>
 <SectionPicker disabled={project.exporting} />
 
 <p>

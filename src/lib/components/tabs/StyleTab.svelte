@@ -164,7 +164,7 @@
 	<br /><small
 		>if words appear late, move right. late taps are common, so +50–100ms often helps.</small
 	>
-	{#if project.mediaKind === 'video'}
+	{#if project.mediaKind === 'video' && !project.usingVideoAudio}
 		<br />
 		<label
 			>background video starts at (s):

@@ -17,8 +17,10 @@
 	});
 </script>
 
-{#if !project.songFile}
-	<p>upload a song in setup first.</p>
+{#if !project.audioFile}
+	<p>add a video or a song in setup first.</p>
+{:else if project.decodeError}
+	<p class="error">{project.decodeError}</p>
 {:else}
 	<p>
 		syncing section: <b>{fmtTime(project.clipStart)} – {fmtTime(project.clipEnd)}</b>
@@ -27,7 +29,7 @@
 	</p>
 	<p class="hint">
 		playback stops at the end of the section and jumps back to its start. if your lyrics cover the
-		whole song, tap the first word sung in this section to start syncing there.
+		whole {project.audioLabel}, tap the first word sung in this section to start syncing there.
 	</p>
 	<p>
 		<button class:active={mode === 'tap'} onclick={() => (mode = 'tap')}>tap to sync</button>

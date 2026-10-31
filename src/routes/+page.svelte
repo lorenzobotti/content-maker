@@ -49,13 +49,11 @@
 		return null;
 	}
 
-	const mod = (a: number, n: number) => ((a % n) + n) % n;
-
-	/** Keep the (looping, muted) background video aligned to song time. */
+	/** Keep the (looping, muted) background video aligned to audio time. */
 	function syncVideo(t: number, playing: boolean, rate: number) {
 		const v = videoEl;
 		if (project.mediaKind !== 'video' || !v || !v.duration || v.seeking) return;
-		const target = mod(project.videoOffset + (t - project.clipStart), v.duration);
+		const target = project.videoTimeAt(t, v.duration);
 		let diff = Math.abs(v.currentTime - target);
 		diff = Math.min(diff, v.duration - diff);
 		if (!playing) {
@@ -93,7 +91,7 @@
 					videoEl!.addEventListener('seeked', r, { once: true });
 					setTimeout(r, 1500);
 				});
-				videoEl.currentTime = mod(project.videoOffset, videoEl.duration);
+				videoEl.currentTime = project.videoTimeAt(project.clipStart, videoEl.duration);
 				await seeked;
 			}
 			project.abort = new AbortController();
@@ -143,11 +141,11 @@
 </div>
 <audio
 	bind:this={project.audioEl}
-	src={project.songUrl}
+	src={project.audioUrl}
 	bind:currentTime={project.currentTime}
 	bind:duration={project.duration}
 	bind:paused={project.paused}
-	onloadedmetadata={() => project.fitClipToSong()}
+	onloadedmetadata={() => project.fitClipToAudio()}
 	preload="auto"
 ></audio>
 
@@ -193,7 +191,7 @@
 		<p>
 			<button
 				onclick={() => project.togglePlay()}
-				disabled={!project.songFile || project.exporting}
+				disabled={!project.audioFile || project.exporting}
 				title={project.paused ? 'play' : 'pause'}
 			>
 				{project.paused ? 'play' : 'pause'}
@@ -204,7 +202,7 @@
 				max={project.duration || 0}
 				step="0.01"
 				bind:value={project.currentTime}
-				disabled={!project.songFile || project.exporting}
+				disabled={!project.audioFile || project.exporting}
 			/>
 			<br />
 			{fmtTime(project.currentTime)} / {fmtTime(project.duration)}

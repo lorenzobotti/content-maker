@@ -71,8 +71,9 @@ export class Project {
 	songFile = $state.raw<File | null>(null);
 	audioBuffer = $state.raw<AudioBuffer | null>(null);
 	decoding = $state(false);
+	decodeError = $state('');
 	mediaUrl = $state('');
-	songUrl = $state('');
+	audioUrl = $state('');
 
 	// --- lyrics, style, clip (persisted) ---
 	lyricsText = $state('');
@@ -109,11 +110,18 @@ export class Project {
 	abort: AbortController | null = null;
 	/** Whether the current playback should stop at the end of the section. */
 	sectionLocked = false;
+	/** The audio source was switched, so the next one loaded starts with a fresh section. */
+	private resetSection = false;
 
 	timeline = $derived(buildTimeline(this.lines));
 	mediaKind = $derived<'video' | 'image' | null>(
 		this.mediaFile ? (this.mediaFile.type.startsWith('image/') ? 'image' : 'video') : null
 	);
+	/** Without a song, the background video's own sound is the audio (and the section trims it). */
+	usingVideoAudio = $derived(!this.songFile && this.mediaKind === 'video');
+	audioFile = $derived(this.songFile ?? (this.usingVideoAudio ? this.mediaFile : null));
+	/** What the section picks from, for labels. */
+	audioLabel = $derived(this.usingVideoAudio ? 'video' : 'song');
 	syncedCount = $derived(
 		this.lines.reduce((n, l) => n + l.words.filter((w) => w.start != null).length, 0)
 	);
@@ -139,8 +147,12 @@ export class Project {
 			if (saved.subtitles) this.subtitles = cleanSubtitleOptions(saved.subtitles);
 		}
 
-		loadFile('media').then((f) => f && !this.mediaFile && (this.mediaFile = f));
-		loadFile('song').then((f) => f && !this.songFile && (this.songFile = f));
+		// Restore together: a video appearing before its song would briefly become the audio and
+		// clamp the saved section to the video's length.
+		Promise.all([loadFile('media'), loadFile('song')]).then(([media, song]) => {
+			if (media && !this.mediaFile) this.mediaFile = media;
+			if (song && !this.songFile) this.songFile = song;
+		});
 		loadFiles('fonts').then(async (files) => {
 			for (const f of files) await this.addFont(f, false).catch((e) => console.warn(e));
 		});
@@ -153,16 +165,28 @@ export class Project {
 		});
 
 		$effect(() => {
-			const file = this.songFile;
-			if (!file) return void (this.songUrl = '');
+			const file = this.audioFile;
+			this.audioBuffer = null;
+			this.decodeError = '';
+			if (!file) {
+				this.audioUrl = '';
+				this.decoding = false;
+				return;
+			}
 			const url = URL.createObjectURL(file);
-			this.songUrl = url;
+			this.audioUrl = url;
 			let cancelled = false;
 			this.decoding = true;
-			this.audioBuffer = null;
 			decodeAudio(file)
 				.then((buf) => !cancelled && (this.audioBuffer = buf))
-				.catch((e) => console.error('Could not decode audio', e))
+				.catch((e) => {
+					console.error('Could not decode audio', e);
+					if (cancelled) return;
+					this.decodeError =
+						file === this.songFile
+							? "couldn't read this song. try another file."
+							: "couldn't read this video's sound. add a song instead.";
+				})
 				.finally(() => !cancelled && (this.decoding = false));
 			return () => {
 				cancelled = true;
@@ -200,13 +224,21 @@ export class Project {
 	}
 
 	setMedia(f: File) {
+		if (!this.songFile) this.resetSection = true;
 		this.mediaFile = f;
 		saveFile('media', f);
 	}
 
 	setSong(f: File) {
+		if (this.usingVideoAudio) this.resetSection = true;
 		this.songFile = f;
 		saveFile('song', f);
+	}
+
+	removeSong() {
+		this.resetSection = true;
+		this.songFile = null;
+		saveFile('song', null);
 	}
 
 	/** Re-split edited lyrics, keeping timings of words that didn't change. */
@@ -266,10 +298,20 @@ export class Project {
 		);
 	}
 
-	/** Default the section to the first minute once the song's length is known. */
-	fitClipToSong() {
-		if (!this.clipEnd || this.clipEnd > this.duration) this.clipEnd = Math.min(this.duration, 60);
+	/** Default the section to the first minute of a song, or a whole video, once the length is known. */
+	fitClipToAudio() {
+		if (this.resetSection) this.clipStart = this.clipEnd = 0;
+		this.resetSection = false;
+		if (!this.clipEnd || this.clipEnd > this.duration)
+			this.clipEnd = this.usingVideoAudio ? this.duration : Math.min(this.duration, 60);
 		if (this.clipStart >= this.clipEnd) this.clipStart = 0;
+	}
+
+	/** Where the background video should be at audio time `t`. */
+	videoTimeAt(t: number, videoDuration: number) {
+		if (this.usingVideoAudio) return t;
+		const pos = (this.videoOffset + (t - this.clipStart)) % videoDuration;
+		return pos < 0 ? pos + videoDuration : pos;
 	}
 
 	/** Set the song section (used for syncing playback and export), keeping it valid. */
@@ -329,7 +371,7 @@ export class Project {
 	}
 
 	baseName() {
-		return (this.songFile?.name ?? 'lyric-video').replace(/\.[^.]+$/, '');
+		return (this.audioFile?.name ?? 'lyric-video').replace(/\.[^.]+$/, '');
 	}
 
 	/** `custom` (minus any extension the user typed and characters files can't have), or `fallback`. */

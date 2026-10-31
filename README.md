@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-1. **setup**: add a background, the song and the lyrics (paste, `.txt` or `.lrc`)
+1. **setup**: add a background, the song (or use the background video's own sound) and the lyrics (paste, `.txt` or `.lrc`), then pick the section to use
 2. **sync**: tap `space` on each word
 3. **style**: pick an animation, font and colors
 4. **export**: record to mp4 (webm on firefox)

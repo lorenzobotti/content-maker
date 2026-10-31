@@ -42,18 +42,22 @@
 
 <p>
 	<label>
-		<b>song</b><br />
+		<b>song</b> <small>(optional with a background video: its own sound is used)</small><br />
 		<input type="file" accept="audio/*" onchange={(e) => pickFile(e, (f) => project.setSong(f))} />
 	</label>
 	<br /><small>
-		{project.songFile?.name ?? 'no song yet'}
+		{project.songFile?.name ??
+			(project.usingVideoAudio ? "using the video's sound" : 'no song yet')}
 		{#if project.decoding}(decoding…){:else if project.audioBuffer}({fmtTime(
 				project.audioBuffer.duration
 			)}){/if}
 	</small>
+	{#if project.songFile}
+		<button onclick={() => project.removeSong()}>remove song</button>
+	{/if}
 </p>
 
-<p><b>song section</b> <small>(the part you'll sync and export)</small></p>
+<p><b>{project.audioLabel} section</b> <small>(the part you'll sync and export)</small></p>
 <SectionPicker />
 
 <p>
@@ -78,7 +82,10 @@ blank lines are ignored."
 	keeps the timings of words you didn't change.
 </p>
 <p>
-	<button disabled={!project.songFile || !project.wordCount} onclick={onnext}>
+	<button
+		disabled={!project.audioFile || !!project.decodeError || !project.wordCount}
+		onclick={onnext}
+	>
 		next: sync lyrics →
 	</button>
 </p>

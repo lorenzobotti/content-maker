@@ -170,8 +170,8 @@
 <svelte:window {onkeydown} />
 
 <p>
-	play the song and hit the big <b>tap</b> button (or <kbd>space</kbd>, <kbd>j</kbd>, <kbd>f</kbd>)
-	the moment each highlighted word is sung.
+	press play and hit the big <b>tap</b> button (or <kbd>space</kbd>, <kbd>j</kbd>, <kbd>f</kbd>) the
+	moment each highlighted word is sung.
 </p>
 <ul class="keys">
 	<li><kbd>space</kbd> while paused → start playback</li>

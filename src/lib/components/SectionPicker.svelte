@@ -106,6 +106,8 @@
 			project.clipStart = Math.min(drag.anchor, t);
 			project.clipEnd = Math.max(drag.anchor, t);
 		}
+		// Show the frame being cut on in the preview.
+		if (project.audioEl?.paused) project.audioEl.currentTime = t;
 	}
 
 	function onpointerup(e: PointerEvent) {
@@ -128,7 +130,11 @@
 </script>
 
 {#if !project.audioBuffer}
-	<p class="hint">{project.decoding ? 'reading the song…' : 'upload a song to pick a section.'}</p>
+	<p class="hint">
+		{project.decoding
+			? `reading the ${project.audioLabel}…`
+			: project.decodeError || 'add a video or a song to pick a section.'}
+	</p>
 {:else}
 	<div
 		class="wave"
@@ -137,7 +143,7 @@
 		bind:clientWidth={width}
 		style:cursor
 		role="group"
-		aria-label="song waveform: drag to select a section, click to move the playhead"
+		aria-label="{project.audioLabel} waveform: drag to select a section, click to move the playhead"
 		{onpointerdown}
 		{onpointermove}
 		{onpointerup}
@@ -160,14 +166,16 @@
 		<button
 			{disabled}
 			onclick={() => project.togglePlay(true)}
-			title="play the whole song from the playhead, ignoring the section"
+			title="play the whole {project.audioLabel} from the playhead, ignoring the section"
 			>{project.paused ? '▶ listen from playhead' : '❚❚ pause'}</button
 		>
 		|
 		{#each [15, 30, 60] as n (n)}
 			<button {disabled} onclick={() => setLength(n)}>{n}s</button>
 		{/each}
-		<button {disabled} onclick={() => project.setSection(0, duration)}>whole song</button>
+		<button {disabled} onclick={() => project.setSection(0, duration)}
+			>whole {project.audioLabel}</button
+		>
 		<br /><small
 			>drag on the waveform to select, drag the handles to adjust, click to move the playhead.</small
 		>
