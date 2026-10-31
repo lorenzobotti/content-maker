@@ -184,8 +184,7 @@ function fitSize(ctx: CanvasRenderingContext2D, texts: string[], style: LyricSty
 		const mid = (lo + hi) / 2;
 		ctx.font = `${style.weight} ${mid}px ${style.font}`;
 		const rows = wrap(ctx, texts, WIDTH * 0.86);
-		const fits =
-			rows.length * mid * 1.2 <= maxH && rows.every((r) => r.width <= WIDTH * 0.86);
+		const fits = rows.length * mid * 1.2 <= maxH && rows.every((r) => r.width <= WIDTH * 0.86);
 		if (fits) lo = mid;
 		else hi = mid;
 	}
